@@ -1,6 +1,12 @@
 # About
 
-![](https://i.postimg.cc/BbnfgyYf/image.png)
+## Branches
+
+### master
+
+![](https://i.postimg.cc/wvnJDktk/image.png)
+
+### 
 
 How to run:
 
@@ -10,7 +16,7 @@ How to run:
 
 ## Resources
 
-- <https://learn.microsoft.com/en-us/archive/msdn-magazine/2009/june/introducing-direct2d>
+- <https://learn.microsoft.com/en-us/archive/msdn-magazine/2009/september/drawing-with-direct2d>
 
 WTL template code source:
 

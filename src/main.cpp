@@ -40,7 +40,7 @@ class Window : public CWindowImpl<Window, CWindow, CWinTraits<WS_OVERLAPPEDWINDO
     {
         VERIFY(__super::Create(nullptr)); // Top-level window
 
-        VERIFY(SetWindowText(L"Direct2D Sample"));
+        VERIFY(SetWindowText(L"Drawing with Direct2D"));
 
         VERIFY(SetWindowPos( //
             nullptr,         // No Z-order change
@@ -92,20 +92,12 @@ class Window : public CWindowImpl<Window, CWindow, CWinTraits<WS_OVERLAPPEDWINDO
                 m_target->BeginDraw();
                 m_target->SetTransform(D2D1::Matrix3x2F::Identity());
                 m_target->Clear(D2D1::ColorF(D2D1::ColorF::Red));
+
                 // Drawing code here
-                m_target->DrawLine(               //
-                    D2D1::Point2(10.0f, 10.0f),   // start
-                    D2D1::Point2(200.0f, 200.0f), // end
-                    m_brush,                      //
-                    10.0f                         // stroke width
-                );
-                const D2D1_POINT_2F center = D2D1::Point2(105.0f, 105.0f);
-                const D2D1_ELLIPSE ellipse = D2D1::Ellipse( //
-                    center,                                 //
-                    95.0f,                                  // radius X
-                    95.0f                                   // radius Y
-                );
-                m_target->DrawEllipse(&ellipse, m_brush, 5.0f); // stroke width
+                m_brush->SetColor(D2D1::ColorF(D2D1::ColorF::Green));
+                const D2D1_SIZE_F size = m_target->GetSize();
+                const D2D1_RECT_F rect = D2D1::RectF(0, 0, size.width, size.height);
+                m_target->FillRectangle(rect, m_brush);
 
                 if (D2DERR_RECREATE_TARGET == m_target->EndDraw())
                 {
