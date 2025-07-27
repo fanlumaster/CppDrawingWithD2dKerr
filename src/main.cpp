@@ -74,27 +74,29 @@ class Window : public CWindowImpl<Window, CWindow, CWinTraits<WS_OVERLAPPEDWINDO
             D2D1_SIZE_U size = D2D1::SizeU(rect.Width(), rect.Height());
             HR(m_factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(m_hWnd, size), &m_target));
 
-            // Gradient colors
-            const D2D1_COLOR_F color1 = D2D1::ColorF(D2D1::ColorF::OrangeRed);
-            const D2D1_COLOR_F color2 = D2D1::ColorF(D2D1::ColorF::YellowGreen);
-            const D2D1_COLOR_F color3 = D2D1::ColorF(D2D1::ColorF::Green);
-            const D2D1_COLOR_F color4 = D2D1::ColorF(D2D1::ColorF::SkyBlue);
-            const D2D1_GRADIENT_STOP gradientStops[] = {{0.0f, color1}, {0.25f, color2}, {0.50f, color3}, {1.0f, color4}};
-            HR(m_target->CreateGradientStopCollection(gradientStops, _countof(gradientStops), &m_gradientStopsCollection));
-
-            const D2D1_SIZE_F size_d2d = m_target->GetSize();
-            const D2D1_POINT_2F center = D2D1::Point2F(size_d2d.width / 2.0f, size_d2d.height / 2.0f);
-            const D2D1_POINT_2F offset = D2D1::Point2F(size_d2d.width * 0.25f, size_d2d.height * 0.25f);
-            const float radiusX = size_d2d.width / 2.0f;
-            const float radiusY = size_d2d.height / 2.0f;
-
-            const D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES properties = D2D1::RadialGradientBrushProperties( //
-                center,                                                                                   //
-                offset,                                                                                   //
-                radiusX,                                                                                  //
-                radiusY);
-
-            HR(m_target->CreateRadialGradientBrush(properties, m_gradientStopsCollection, &m_brush));
+            D2D1_STROKE_STYLE_PROPERTIES properties = D2D1::StrokeStyleProperties();
+            properties.dashStyle = D2D1_DASH_STYLE_CUSTOM;
+            float dashes[] = {
+                2.0f,
+                4.0f,
+                3.0f,
+                2.0f,
+            };
+            HR(m_factory->CreateStrokeStyle( //
+                properties,                  //
+                dashes,                      //
+                _countof(dashes),            //
+                &m_strokeStyle));
+            properties.startCap = D2D1_CAP_STYLE_ROUND;
+            properties.endCap = D2D1_CAP_STYLE_ROUND;
+            properties.dashCap = D2D1_CAP_STYLE_ROUND;
+            properties.lineJoin = D2D1_LINE_JOIN_MITER;
+            HR(m_factory->CreateStrokeStyle( //
+                properties,                  //
+                dashes,                      //
+                _countof(dashes),            //
+                &m_strokeStyle02));
+            HR(m_target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &m_brush));
         }
         return S_OK;
     }
@@ -113,12 +115,37 @@ class Window : public CWindowImpl<Window, CWindow, CWinTraits<WS_OVERLAPPEDWINDO
             {
                 m_target->BeginDraw();
                 m_target->SetTransform(D2D1::Matrix3x2F::Identity());
-                m_target->Clear(D2D1::ColorF(D2D1::ColorF::Red));
+                m_target->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
                 // Drawing code here
                 const D2D1_SIZE_F size = m_target->GetSize();
-                const D2D1_RECT_F rect = D2D1::RectF(0, 0, size.width, size.height);
-                m_target->FillRectangle(rect, m_brush);
+                const float width = size.width;
+                const float height = size.height;
+                const float centerX = width / 2.0f;
+                const float centerY = height / 2.0f;
+
+                /* Rectangle */
+                m_brush->SetColor(D2D1::ColorF(D2D1::ColorF::Red));
+                m_brush->SetOpacity(0.6f);
+                m_target->FillRectangle(D2D1::RectF(centerX - 60, 30.0f, centerX + 60.0f, 80.0f), m_brush);
+                m_brush->SetOpacity(1.0f);
+                m_target->DrawRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(centerX - 60.0f, 30.0f, centerX + 60.0f, 80.0f), 10.0f, 10.0f), m_brush, 10.0f);
+
+                /* Rounded Rectangle */
+                m_brush->SetColor(D2D1::ColorF(D2D1::ColorF::Green));
+                m_brush->SetOpacity(0.6f);
+                m_target->FillRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(centerX - 5.0f, 100.0f, centerX + 95.0f, 180.0f), 10.0f, 10.0f), m_brush);
+                m_brush->SetOpacity(1.0f);
+                m_target->DrawRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(centerX - 5.0f, 100.0f, centerX + 95.0f, 180.0f), 10.0f, 10.0f), m_brush, 10.0f, m_strokeStyle);
+
+                /* Ellipse */
+                m_brush->SetColor(D2D1::ColorF(D2D1::ColorF::Violet));
+                m_brush->SetOpacity(0.6f);
+                m_target->FillEllipse(D2D1::Ellipse(D2D1::Point2F(centerX - 50.0f, centerY + 20.0f), 70.0f, 50.0f), m_brush);
+                m_brush->SetOpacity(1.0f);
+                m_target->DrawEllipse(D2D1::Ellipse(D2D1::Point2F(centerX - 50.0f, centerY + 20.0f), 70.0f, 50.0f), m_brush, 10.0f, m_strokeStyle02);
+
+                // End of drawing code
 
                 if (D2DERR_RECREATE_TARGET == m_target->EndDraw())
                 {
@@ -161,7 +188,9 @@ class Window : public CWindowImpl<Window, CWindow, CWinTraits<WS_OVERLAPPEDWINDO
     CComPtr<ID2D1Factory> m_factory;
     CComPtr<ID2D1HwndRenderTarget> m_target;
     CComPtr<ID2D1GradientStopCollection> m_gradientStopsCollection;
-    CComPtr<ID2D1RadialGradientBrush> m_brush;
+    CComPtr<ID2D1SolidColorBrush> m_brush;
+    CComPtr<ID2D1StrokeStyle> m_strokeStyle;
+    CComPtr<ID2D1StrokeStyle> m_strokeStyle02;
 };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
