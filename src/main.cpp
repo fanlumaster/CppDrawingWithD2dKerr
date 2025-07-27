@@ -79,14 +79,22 @@ class Window : public CWindowImpl<Window, CWindow, CWinTraits<WS_OVERLAPPEDWINDO
             const D2D1_COLOR_F color2 = D2D1::ColorF(D2D1::ColorF::YellowGreen);
             const D2D1_COLOR_F color3 = D2D1::ColorF(D2D1::ColorF::Green);
             const D2D1_COLOR_F color4 = D2D1::ColorF(D2D1::ColorF::SkyBlue);
-            const D2D1_GRADIENT_STOP gradientStops[] = {{0.0f, color1}, {0.2f, color2}, {0.3f, color3}, {1.0f, color4}};
+            const D2D1_GRADIENT_STOP gradientStops[] = {{0.0f, color1}, {0.25f, color2}, {0.50f, color3}, {1.0f, color4}};
             HR(m_target->CreateGradientStopCollection(gradientStops, _countof(gradientStops), &m_gradientStopsCollection));
 
             const D2D1_SIZE_F size_d2d = m_target->GetSize();
-            const D2D1_POINT_2F start = D2D1::Point2F(0.0f, 0.0f);
-            const D2D1_POINT_2F end = D2D1::Point2F(size_d2d.width, size_d2d.height);
-            const D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES properties = D2D1::LinearGradientBrushProperties(start, end);
-            HR(m_target->CreateLinearGradientBrush(properties, m_gradientStopsCollection, &m_brush));
+            const D2D1_POINT_2F center = D2D1::Point2F(size_d2d.width / 2.0f, size_d2d.height / 2.0f);
+            const D2D1_POINT_2F offset = D2D1::Point2F(size_d2d.width * 0.25f, size_d2d.height * 0.25f);
+            const float radiusX = size_d2d.width / 2.0f;
+            const float radiusY = size_d2d.height / 2.0f;
+
+            const D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES properties = D2D1::RadialGradientBrushProperties( //
+                center,                                                                                   //
+                offset,                                                                                   //
+                radiusX,                                                                                  //
+                radiusY);
+
+            HR(m_target->CreateRadialGradientBrush(properties, m_gradientStopsCollection, &m_brush));
         }
         return S_OK;
     }
@@ -110,8 +118,6 @@ class Window : public CWindowImpl<Window, CWindow, CWinTraits<WS_OVERLAPPEDWINDO
                 // Drawing code here
                 const D2D1_SIZE_F size = m_target->GetSize();
                 const D2D1_RECT_F rect = D2D1::RectF(0, 0, size.width, size.height);
-
-                m_brush->SetEndPoint(D2D1::Point2F(size.width, size.height));
                 m_target->FillRectangle(rect, m_brush);
 
                 if (D2DERR_RECREATE_TARGET == m_target->EndDraw())
@@ -155,7 +161,7 @@ class Window : public CWindowImpl<Window, CWindow, CWinTraits<WS_OVERLAPPEDWINDO
     CComPtr<ID2D1Factory> m_factory;
     CComPtr<ID2D1HwndRenderTarget> m_target;
     CComPtr<ID2D1GradientStopCollection> m_gradientStopsCollection;
-    CComPtr<ID2D1LinearGradientBrush> m_brush;
+    CComPtr<ID2D1RadialGradientBrush> m_brush;
 };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
